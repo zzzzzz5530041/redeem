@@ -14,13 +14,13 @@ public class ProductServiceImpl implements IProductService {
 	@Override
 	public List<Product> getAllProducts() {
 		// TODO Auto-generated method stub
-		return null;
+		return iProductCache.getAllProducts();
 	}
 
 	@Override
 	public Product getProductByKey(String key) {
 		// TODO Auto-generated method stub
-		return null;
+		return iProductCache.getProductByKey(key);
 	}
 
 }
