@@ -19,7 +19,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 @Component
 public class ProductCacheImpl implements IProductCache {
-	private static final String PRODUCT_LIST_KEY_NAME="product.keys";
+	private static final String PRODUCT_LIST_KEY_NAME="product_keys";
 
 	@Autowired
 	private JedisPool jedisPool;
@@ -35,8 +35,8 @@ public class ProductCacheImpl implements IProductCache {
 		Jedis jedis = getJedis() ;
 		try {
 			for(Product p : products){
-				StringBuilder key = new StringBuilder("product.");
-				key.append(p.getCategory()).append(".").append(p.getId());
+				StringBuilder key = new StringBuilder("product_");
+				key.append(p.getCategory()).append("_").append(p.getId());
 				jedis.set(key.toString(), mapper.writeValueAsString(p));// put to string  eg:product.1.1
 				jedis.lpush(PRODUCT_LIST_KEY_NAME, mapper.writeValueAsString(p));// push keys to list, key = product.keys
 			}
@@ -78,6 +78,7 @@ public class ProductCacheImpl implements IProductCache {
 		ObjectMapper mapper = new MappingJackson2HttpMessageConverter().getObjectMapper();
 		Jedis jedis = getJedis() ;
 		String json = jedis.get(key);
+		if(json==null||"".equals(json))return null;
 		Product product = null;
 		try {
 			product = mapper.readValue(json, Product.class);
