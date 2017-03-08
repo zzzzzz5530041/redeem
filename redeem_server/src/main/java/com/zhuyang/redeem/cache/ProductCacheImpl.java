@@ -23,17 +23,19 @@ public class ProductCacheImpl implements IProductCache {
 	private static final String PRODUCT_LIST_KEY_NAME="product_keys";
 
 	@Autowired
-	private JedisPool jedisPool;
+	private JedisPool jedisSlaverPool;
+	@Autowired
+	private JedisPool jedisMasterPool;
 	@Autowired
 	private IProductDAO iProductDAO;
 	
-	public Jedis getJedis() { 
+	public Jedis getJedis(JedisPool jedisPool) { 
         return jedisPool.getResource();
     }
 	public void loadFromDB() {
 		List<Product> products = iProductDAO.getAllProducts();
 		ObjectMapper mapper = new MappingJackson2HttpMessageConverter().getObjectMapper();
-		Jedis jedis = getJedis() ;
+		Jedis jedis = getJedis(jedisMasterPool) ;
 		try {
 			for(Product p : products){
 				StringBuilder key = new StringBuilder("product_");
@@ -52,7 +54,7 @@ public class ProductCacheImpl implements IProductCache {
 	public List<Product> getAllProducts() {
 		List<Product> products =new ArrayList();
 		ObjectMapper mapper = new MappingJackson2HttpMessageConverter().getObjectMapper();
-		Jedis jedis = getJedis() ;
+		Jedis jedis = getJedis(jedisSlaverPool) ;
 		long length = jedis.llen(PRODUCT_LIST_KEY_NAME);
 		List<String> jsons = jedis.lrange(PRODUCT_LIST_KEY_NAME, 0, length);
 		try {
@@ -77,7 +79,7 @@ public class ProductCacheImpl implements IProductCache {
 	@Override
 	public Product getProductByKey(String key) {
 		ObjectMapper mapper = new MappingJackson2HttpMessageConverter().getObjectMapper();
-		Jedis jedis = getJedis() ;
+		Jedis jedis = getJedis(jedisSlaverPool) ;
 		String json = jedis.get(key);
 		if(json==null||"".equals(json))return null;
 		Product product = null;
@@ -100,7 +102,7 @@ public class ProductCacheImpl implements IProductCache {
 	@Override
 	public boolean updateProductStock(String key, Long buyCount) {
 		ObjectMapper mapper = new MappingJackson2HttpMessageConverter().getObjectMapper();
-		Jedis jedis = getJedis() ;
+		Jedis jedis = getJedis(jedisMasterPool) ;
 		String json = jedis.get(key);
 		if(json==null||"".equals(json))return false;
 		Product product = null;

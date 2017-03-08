@@ -18,12 +18,21 @@ spring:
   application: 
     name: redeem-server
   redis:
-    host: 127.0.0.1
-    pool:
-      max-idle: 8
-      max-wait: 1000
-      max-active: 300
-    port: 6379
+    master:
+      host: 127.0.0.1
+      pool:
+        max-idle: 8
+        max-wait: 1000
+        max-active: 300
+      port: 6379
+    slaver: 
+      host: 127.0.0.1
+      pool:
+        max-idle: 8
+        max-wait: 1000
+        max-active: 300
+      port: 6380
+    
   datasource:
     dbcp:
       driver-class-name: com.mysql.jdbc.Driver
