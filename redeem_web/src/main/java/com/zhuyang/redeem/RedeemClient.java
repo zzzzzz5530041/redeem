@@ -8,9 +8,9 @@ import org.springframework.cloud.netflix.feign.EnableFeignClients;
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableFeignClients
-public class ConsumerApp {
+public class RedeemClient {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ConsumerApp.class, args);
+		SpringApplication.run(RedeemClient.class, args);
 	}
 }
