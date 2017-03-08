@@ -24,4 +24,9 @@ public class ProductServiceImpl implements IProductService {
 		return iProductCache.getProductByKey(key);
 	}
 
+	@Override
+	public boolean updateProductStock(String key, Long buyCount) {
+		return iProductCache.updateProductStock(key, buyCount);
+	}
+
 }

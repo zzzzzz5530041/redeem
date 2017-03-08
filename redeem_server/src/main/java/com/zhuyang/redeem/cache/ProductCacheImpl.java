@@ -17,6 +17,7 @@ import com.zhuyang.redeem.entity.Product;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Transaction;
 @Component
 public class ProductCacheImpl implements IProductCache {
 	private static final String PRODUCT_LIST_KEY_NAME="product_keys";
@@ -95,5 +96,51 @@ public class ProductCacheImpl implements IProductCache {
 			jedis.close();
 		}
 		return product;
+	}
+	@Override
+	public boolean updateProductStock(String key, Long buyCount) {
+		ObjectMapper mapper = new MappingJackson2HttpMessageConverter().getObjectMapper();
+		Jedis jedis = getJedis() ;
+		String json = jedis.get(key);
+		if(json==null||"".equals(json))return false;
+		Product product = null;
+		try {
+			product = mapper.readValue(json, Product.class);
+			//watch key
+			jedis.watch(key);
+			Transaction txn = jedis.multi();
+			Long currentStock = product.getStock();
+			System.out.println("current stock of "+key);
+			if(currentStock<buyCount){
+				txn.discard();
+				jedis.unwatch();
+				return false;
+			}
+			Long newStock = currentStock - buyCount;
+			product.setStock(newStock);
+			txn.set(key,mapper.writeValueAsString(product) );
+			List <Object> exec = txn.exec();
+			System.out.println("exec==="+exec);
+			if(exec==null){
+				return false;
+			}
+			jedis.unwatch();
+			
+			//update database
+			boolean updateDB = iProductDAO.updateProductStock(product.getId(), newStock);
+			if(!updateDB)return false;
+		} catch (JsonParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			jedis.close();
+		}
+		return true;
 	}
 }

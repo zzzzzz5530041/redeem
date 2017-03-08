@@ -1,9 +1,12 @@
 package com.zhuyang.redeem.controller;
 
 import java.util.List;
+import java.util.Map;
 
+import org.codehaus.jettison.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,4 +31,11 @@ public class ProductController {
 		return products;
 	}
 
+	@RequestMapping(value = "/products/stock", method = RequestMethod.POST)
+	public boolean updateProductStock(@RequestBody Map map) {
+		System.out.println(map);
+		String key = (String) map.get("key");
+		Long buyCount = Long.parseLong((String) map.get("buyCount"));
+		return iProductService.updateProductStock(key, buyCount);
+	}
 }

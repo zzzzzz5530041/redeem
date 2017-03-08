@@ -34,4 +34,11 @@ public class ProductDAOImpl implements IProductDAO {
 		return products;
 	}
 
+	@Override
+	public boolean updateProductStock(Long id, Long stock) {
+		int rows = jdbcTemplate.update("UPDATE product SET stock=? WHERE id=?", new Object[]{stock,id});
+		if(rows>=0)return true;
+		return false;
+	}
+
 }
